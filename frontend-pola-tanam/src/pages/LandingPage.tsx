@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import videoBackground from './Video_Lahan.mp4'; 
-import logoUnimed from './logo-unimed.png';
+import logoUnimed from './Logo-Unimed.png';
 
 const LandingPage: React.FC = () => {
   return (
