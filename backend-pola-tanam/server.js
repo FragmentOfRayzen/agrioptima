@@ -1,4 +1,6 @@
-﻿require("dotenv").config();
+require("dotenv").config();
+// Paksa IPv4 agar kompatibel dengan Railway (Railway tidak support IPv6 ke Gmail)
+require("dns").setDefaultResultOrder("ipv4first");
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -33,7 +35,10 @@ const emailUser = (process.env.EMAIL_USER || "").trim();
 const emailPass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "").trim();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  family: 4,
   auth: {
     user: emailUser,
     pass: emailPass,
