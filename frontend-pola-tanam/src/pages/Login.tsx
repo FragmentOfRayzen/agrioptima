@@ -5,6 +5,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [notVerifiedEmail, setNotVerifiedEmail] = useState('');
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
