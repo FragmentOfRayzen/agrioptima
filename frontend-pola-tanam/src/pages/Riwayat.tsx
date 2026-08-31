@@ -28,7 +28,7 @@ const Riwayat: React.FC = () => {
 
       try {
         // PERHATIAN: Endpoint ini akan kita bangun di backend pada tahap selanjutnya
-        const response = await fetch('http://localhost:5000/api/history', {
+        const response = await fetch('https://agrioptima-backend-production.up.railway.app/api/history', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

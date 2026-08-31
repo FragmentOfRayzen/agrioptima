@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
     const token = localStorage.getItem('agrioptima_token');
     if (token) {
       try {
-        await fetch('http://localhost:5000/api/history', {
+        await fetch('https://agrioptima-backend-production.up.railway.app/api/history', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
