@@ -8,6 +8,7 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [konfirmasiPassword, setKonfirmasiPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   
   const navigate = useNavigate();
 
@@ -44,7 +45,7 @@ const Register: React.FC = () => {
       }
 
       // 2. Jika sukses, arahkan ke halaman verifikasi
-      alert('Pendaftaran tahap 1 berhasil! Token telah dikirim ke email Anda.');
+      setSuccessMsg('Pendaftaran berhasil! Silakan cek kotak masuk email Anda untuk kode verifikasi OTP.');
       navigate('/verify', { state: { email: email } }); 
       
     } catch (error) {
@@ -106,7 +107,13 @@ const Register: React.FC = () => {
           </div>
 
           {/* Pesan Error */}
-          {errorMsg && (
+          {successMsg && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {successMsg}
+          </div>
+        )}
+        {errorMsg && (
             <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r text-sm font-medium">
               {errorMsg}
             </div>
