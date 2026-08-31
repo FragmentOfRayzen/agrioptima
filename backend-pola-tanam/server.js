@@ -37,16 +37,25 @@ pool.connect((err, client, release) => {
 // ========================================================
 // KONFIGURASI PENGIRIMAN EMAIL (NODEMAILER)
 // ========================================================
+const emailUser = (process.env.EMAIL_USER || '').trim();
+const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '').trim();
+
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Gunakan false untuk port 587
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, 
+    user: emailUser,
+    pass: emailPass,
   },
   tls: {
-    rejectUnauthorized: false // Membantu melewati blokir sertifikat lokal
+    rejectUnauthorized: false
+  }
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('? Status Koneksi Email Gmail:', error.message);
+  } else {
+    console.log('? Email Transporter Gmail Siap Mengirim Pesan');
   }
 });
 // Fungsi bantuan untuk mendesain template email HTML agar terlihat profesional
@@ -98,13 +107,18 @@ app.post('/api/auth/register', async (req, res) => {
     );
 
     // F. Mengirim Email OTP yang Sesungguhnya
-    await transporter.sendMail({
+    console.log('[OTP SYSTEM] Token OTP untuk ' + email + ': ' + (typeof otpToken !== 'undefined' ? otpToken : 'token'));
+    try {
+      await transporter.sendMail({
       from: `"Sistem AgriOptima" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kode Verifikasi OTP Anda - AgriOptima',
       html: buatTemplateEmail(nama, otpToken)
     });
-    console.log(`✉️ Email OTP berhasil dikirim secara nyata ke: ${email}`);
+      console.log('? Email OTP berhasil dikirim ke: ' + email);
+    } catch (mailErr) {
+      console.error('?? Gagal mengirim email OTP via SMTP:', mailErr.message);
+    }
 
     // Beri tahu Frontend bahwa pendaftaran berhasil
     res.status(201).json({ 
@@ -191,7 +205,9 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     );
 
     // E. Mengirim Ulang Email OTP yang Sesungguhnya
-    await transporter.sendMail({
+    console.log('[OTP SYSTEM] Token OTP untuk ' + email + ': ' + (typeof otpToken !== 'undefined' ? otpToken : 'token'));
+    try {
+      await transporter.sendMail({
       from: `"Sistem AgriOptima" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kirim Ulang: Kode Verifikasi OTP Anda',
@@ -299,7 +315,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       </div>
     `;
 
-    await transporter.sendMail({
+    console.log('[OTP SYSTEM] Token OTP untuk ' + email + ': ' + (typeof otpToken !== 'undefined' ? otpToken : 'token'));
+    try {
+      await transporter.sendMail({
       from: `"Sistem AgriOptima" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Reset Password Anda - AgriOptima',
