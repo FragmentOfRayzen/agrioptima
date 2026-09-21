@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Login: React.FC = () => {
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
                 onClick={() => navigate('/verify', { state: { email: notVerifiedEmail } })}
                 className="block w-full mt-2 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg py-2 px-4 transition-colors"
               >
-                Masukkan Kode OTP Sekarang â†’
+                Masukkan Kode OTP Sekarang ?
               </button>
             )}
           </div>
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agri-green focus:border-agri-green bg-gray-50 focus:bg-white transition-colors"
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+              placeholder="••••••••••"
               required
               disabled={loading || demoLoading}
             />
@@ -173,9 +173,7 @@ const Login: React.FC = () => {
             </>
           )}
         </button>
-        <p className="text-xs text-center text-gray-400 mt-2">
-          Mode demo hanya untuk keperluan presentasi. Data tidak tersimpan.
-        </p>
+        
 
         {/* Footer */}
         <div className="mt-6 text-center border-t border-gray-100 pt-6">
