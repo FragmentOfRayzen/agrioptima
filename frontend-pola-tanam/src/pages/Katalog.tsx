@@ -18,7 +18,7 @@ const Katalog: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Katalog Komoditas Pertanian</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Basis data parameter biologis dan ekonomi untuk komoditas hortikultura di Desa Saribudolok[cite: 1].
+            Basis data parameter model (Tabel 4.9) untuk komoditas di Desa Saribudolok. Satuan: hektar (ha).
           </p>
         </div>
 
@@ -66,6 +66,8 @@ const Katalog: React.FC = () => {
                   <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Prod. Max (h<sub>i</sub>)</th>
                   <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Biaya (c<sub>i</sub>)</th>
                   <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Harga Jual (s<sub>i</sub>)</th>
+                  <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Luas (l<sub>i</sub>)</th>
+                  <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tahan Hujan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm">
@@ -96,18 +98,22 @@ const Katalog: React.FC = () => {
                     </td>
                     <td className="py-4 px-6 text-right">
                       {tanaman.biayaProduksi > 0 ? (
-                        <span className="font-medium text-gray-700">Rp {tanaman.biayaProduksi.toLocaleString('id-ID')}</span>
+                        <span className="font-medium text-gray-700">Rp {tanaman.biayaProduksi.toLocaleString('id-ID')}/ha</span>
                       ) : (
                         <span className="text-xs text-gray-300 italic">belum ada</span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-right">
                       {tanaman.hargaJual > 0 ? (
-                        <span className="font-medium text-green-700">Rp {tanaman.hargaJual.toLocaleString('id-ID')}</span>
+                        <span className="font-medium text-green-700">Rp {tanaman.hargaJual.toLocaleString('id-ID')}/kg</span>
                       ) : (
                         <span className="text-xs text-gray-300 italic">belum ada</span>
                       )}
                     </td>
+                  <td className="py-4 px-6 text-right font-medium text-gray-700">{tanaman.luasTanam.toLocaleString('id-ID')} ha</td>
+                  <td className="py-4 px-6 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tanaman.tahanHujan ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{tanaman.tahanHujan ? 'Ya' : 'Tidak'}</span>
+                  </td>
                   </tr>
                 ))}
               </tbody>
@@ -120,7 +126,7 @@ const Katalog: React.FC = () => {
             </svg>
             <p className="text-xs text-amber-800 leading-relaxed">
               <span className="font-bold block mb-1">Catatan Parameter Model:</span> 
-              Nilai parameter h<sub>i</sub>, c<sub>i</sub>, s<sub>i</sub>, dan l<sub>i</sub> saat ini menunggu input aktual. Data akan dilengkapi setelah hasil survei lapangan dan data komoditas dari instansi terkait setempat diverifikasi.
+              Nilai parameter h<sub>i</sub>, c<sub>i</sub>, s<sub>i</sub>, dan l<sub>i</sub> bersumber dari Tabel 4.9 penelitian (data lapangan). Sawi Putih dan Kopi tahan curah hujan tinggi (tanpa penalti β dan γ); Kopi dan Jeruk adalah tanaman tahunan dengan masa tanam 12 bulan.
             </p>
           </div>
         </div>

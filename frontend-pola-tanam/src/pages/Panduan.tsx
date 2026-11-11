@@ -48,12 +48,12 @@ const Panduan: React.FC = () => {
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">2. Menjalankan Simulasi Model</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Anda hanya perlu memasukkan <strong>Luas Lahan (m²)</strong> yang tersedia. Saat Anda mengklik "Jalankan Simulasi", mesin komputasi MILP di balik layar akan bekerja menyeleksi 10 tanaman dengan aturan ketat:
+                Anda hanya perlu memasukkan <strong>Batas Luas Tanam (ha)</strong> serta nilai penalti hujan <strong>β</strong> (penurunan hasil) dan <strong>γ</strong> (kenaikan biaya); nilai awalnya mengikuti penelitian (750 ha, 15%, 30%). Saat Anda mengklik "Jalankan Optimisasi", mesin komputasi MILP di balik layar menjalankan <strong>Model 1 (Tunggal + Rotasi)</strong> dan <strong>Model 2 (Tumpang Sari + Rotasi)</strong> sekaligus untuk menyeleksi 10 tanaman dengan aturan ketat:
               </p>
               <ul className="space-y-2 text-sm text-gray-600 list-disc pl-5">
-                <li>Tidak boleh melebihi luas lahan total pada bulan manapun.</li>
+                <li>Total luas tanam semua tanaman terpilih tidak boleh melebihi batas luas tanam.</li>
                 <li>Setiap tanaman hanya boleh ditanam maksimal 1 kali dalam setahun (mendorong rotasi).</li>
-                <li>Tanaman dari famili botani yang sama (misal: Tomat dan Cabai sama-sama Solanaceae) tidak boleh ditanam secara berurutan.</li>
+                <li>Tanaman dari famili botani yang sama (misal: Tomat dan Cabai sama-sama Solanaceae) tidak boleh memiliki masa tanam yang saling tumpang tindih.</li><li>Model 1: maksimal satu tanaman mulai tanam per bulan. Model 2: pasangan tumpang sari tertentu (misal Kentang + Jagung) boleh mulai bersamaan, maksimal dua tanaman per bulan.</li>
               </ul>
             </div>
           </div>
@@ -89,7 +89,7 @@ const Panduan: React.FC = () => {
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">4. Membaca Timeline Jadwal Tanam</h3>
               <p className="text-gray-600 leading-relaxed">
-                Di bagian paling bawah dashboard, terdapat tabel Jadwal Tanam (Gantt Chart). Balok horizontal berwarna menunjukkan masa hidup tanaman dari bulan mulai tanam hingga bulan panen. Jika terdapat dua balok warna yang saling tumpang tindih pada bulan yang sama, itu artinya sistem merekomendasikan metode <strong>Tumpang Sari</strong>. Jika balok menyambung satu sama lain, sistem merekomendasikan <strong>Rotasi Tanaman</strong>.
+                Di bawah form, bagian <strong>Perbandingan Pola Tanam Optimal</strong> menampilkan hasil Model 1 dan Model 2 berdampingan, lengkap dengan Gantt chart 12 bulan dan tabel hasil. Balok berwarna menunjukkan masa tanam dari bulan mulai hingga bulan panen; tanaman yang melewati Desember dilanjutkan ke Januari. Pada Model 2, lencana ungu (misal "+ Jagung") menandai pasangan <strong>Tumpang Sari</strong> yang mulai ditanam pada bulan yang sama. Rekomendasi jadwal per bulan (Januari–Desember) tersedia di bagian Jadwal Tanam, dan Anda dapat memilih model yang ditampilkan.
               </p>
             </div>
           </div>

@@ -6,64 +6,131 @@ interface JadwalTanamProps {
   data: HasilOptimisasi | null;
 }
 
-// Default jadwal (sebelum simulasi dijalankan)
-const defaultJadwal = [
-  {
-    id: 1, bulanMulai: 1, bulanSelesai: 2, tanaman: 'Sawi Putih', tanamanId: 6,
-    fase: 'Cuaca Normal', keterangan: 'Sawi Putih (Brassicaceae) — durasi 2 bulan. Cuaca normal mendukung pertumbuhan optimal.',
-    cuacaNormal: true, warnaIkon: 'bg-emerald-500', warnaBg: 'bg-emerald-50'
-  },
-  {
-    id: 2, bulanMulai: 3, bulanSelesai: 5, tanaman: 'Wortel', tanamanId: 7,
-    fase: 'Cuaca Normal', keterangan: 'Wortel (Apiaceae) — durasi 3 bulan. Famili berbeda dari Sawi, mendukung rotasi tanaman.',
-    cuacaNormal: true, warnaIkon: 'bg-emerald-500', warnaBg: 'bg-emerald-50'
-  },
-  {
-    id: 3, bulanMulai: 6, bulanSelesai: 8, tanaman: 'Bawang Merah', tanamanId: 5,
-    fase: 'Transisi Cuaca', keterangan: 'Bawang Merah (Amaryllidaceae) — durasi 3 bulan. Memasuki transisi cuaca normal ke tidak normal.',
-    cuacaNormal: true, warnaIkon: 'bg-amber-500', warnaBg: 'bg-amber-50'
-  },
-  {
-    id: 4, bulanMulai: 9, bulanSelesai: 12, tanaman: 'Jagung', tanamanId: 8,
-    fase: 'Cuaca Tidak Normal', keterangan: 'Jagung (Poaceae) — durasi 4 bulan. Curah hujan tinggi (≥200mm), perlu pemantauan ketat.',
-    cuacaNormal: false, warnaIkon: 'bg-amber-500', warnaBg: 'bg-amber-50'
-  },
-];
+// Ikon cuaca
+const IkonCuaca = ({ normal }: { normal: boolean }) =>
+  normal ? (
+    <span title="Cuaca Normal" className="text-amber-400 text-base">☀️</span>
+  ) : (
+    <span title="Cuaca Tidak Normal (Hujan)" className="text-blue-400 text-base">🌧️</span>
+  );
 
 const JadwalTanam: React.FC<JadwalTanamProps> = ({ data }) => {
-  const jadwal = data && data.feasible && data.jadwalTanam.length > 0 
-    ? data.jadwalTanam 
-    : defaultJadwal;
+  const hasilValid = data && data.feasible && data.jadwalTanam.length > 0;
+  const jadwal = hasilValid ? data.jadwalTanam : [];
+  const polaTanamLabel = data ? data.polaTanam : null;
 
-  const polaTanamLabel = data ? data.polaTanam : 'Rotasi Tanaman (Default)';
+  // Buat peta: bulan → info tanaman yang sedang aktif di bulan itu
+  type InfoBulan = {
+    tanamanId: number;
+    namaTanaman: string;
+    warna: string;
+    fase: string;
+    cuacaNormal: boolean;
+    warnaIkon: string;
+    bulanMulai: number;
+    bulanSelesai: number;
+  };
+  const petaBulan: Record<number, InfoBulan[]> = {};
+  for (let b = 1; b <= 12; b++) petaBulan[b] = [];
 
-  // Build 12-month visual bar
-  const bulanColors = Array(12).fill('#e5e7eb');
   for (const item of jadwal) {
+    if (item.tanamanId === 0) continue;
     const tanaman = DAFTAR_TANAMAN.find(t => t.id === item.tanamanId);
-    const color = tanaman?.warna || (item.tanamanId === 0 ? '#d1d5db' : '#94a3b8');
-    for (let b = item.bulanMulai - 1; b < item.bulanSelesai && b < 12; b++) {
-      bulanColors[b] = color;
+    for (let b = item.bulanMulai; b <= Math.min(item.bulanSelesai, 12); b++) {
+      petaBulan[b].push({
+        tanamanId: item.tanamanId,
+        namaTanaman: item.tanaman,
+        warna: tanaman?.warna || '#94a3b8',
+        fase: item.fase,
+        cuacaNormal: DATA_CUACA[b - 1]?.isNormal ?? true,
+        warnaIkon: item.warnaIkon,
+        bulanMulai: item.bulanMulai,
+        bulanSelesai: item.bulanSelesai,
+      });
     }
   }
 
+  // Visual bar warna per bulan
+  const bulanColors: string[] = Array(12).fill('#e5e7eb');
+  for (let b = 1; b <= 12; b++) {
+    if (petaBulan[b].length > 0) {
+      bulanColors[b - 1] = petaBulan[b][0].warna;
+    }
+  }
+
+  // Empty state — sebelum simulasi
+  if (!hasilValid) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-8 w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-100 pb-4 gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <svg className="w-5 h-5 text-agri-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Rekomendasi Jadwal Tanam
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Jadwal operasional Januari – Desember berdasarkan hasil optimisasi MILP
+            </p>
+          </div>
+          <span className="text-xs px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full font-bold border border-gray-200">
+            Belum Disimulasikan
+          </span>
+        </div>
+
+        {/* Grid preview 12 bulan (kosong) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-6">
+          {NAMA_BULAN.map((_, i) => (
+            <div key={i} className="rounded-lg border border-dashed border-gray-200 p-3 bg-gray-50/50 flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-500">{DATA_CUACA[i].bulan}</span>
+                <IkonCuaca normal={DATA_CUACA[i].isNormal} />
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-200 mt-1"></div>
+              <p className="text-[10px] text-gray-400 mt-1">—</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <p className="font-semibold text-gray-600 mb-1">Jalankan Optimisasi</p>
+          <p className="text-sm text-gray-400 max-w-xs">
+            Isi parameter di form sebelah kiri, lalu klik <span className="font-semibold text-agri-green">Jalankan Optimisasi</span> untuk melihat jadwal tanam optimal Januari–Desember.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ringkasan hasil
+  const totalTanaman = jadwal.filter(j => j.tanamanId !== 0).length;
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-8 w-full">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-100 pb-4 gap-4">
         <div>
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <svg className="w-5 h-5 text-agri-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <svg className="w-5 h-5 text-agri-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
             Rekomendasi Jadwal Tanam
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Jadwal operasional berdasarkan hasil optimisasi — Pola: <span className="font-semibold text-gray-700">{polaTanamLabel}</span>
+            Jadwal operasional Januari – Desember — Pola:{' '}
+            <span className="font-semibold text-gray-700">{polaTanamLabel}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs px-3 py-1.5 bg-green-50 text-agri-green rounded-full font-bold border border-green-200">
-            {jadwal.filter(j => j.tanamanId !== 0).length} Tanaman
+            {totalTanaman} Tanaman Aktif
           </span>
           <span className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 rounded-full font-bold border border-gray-200">
             12 Bulan
@@ -71,32 +138,34 @@ const JadwalTanam: React.FC<JadwalTanamProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Visual Calendar Bar */}
-      <div className="mb-8">
+      {/* Visual Bar Calendar */}
+      <div className="mb-6">
         <div className="flex gap-0.5 rounded-lg overflow-hidden">
           {bulanColors.map((color, i) => (
             <div key={i} className="flex-1 group relative">
-              <div 
-                className="h-10 transition-all hover:h-12 cursor-pointer" 
+              <div
+                className="h-10 transition-all hover:h-12 cursor-pointer"
                 style={{ backgroundColor: color, opacity: 0.85 }}
-              >
-              </div>
+              ></div>
               <p className="text-center text-[10px] text-gray-500 mt-1 font-medium">
                 {DATA_CUACA[i].bulan}
               </p>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 pointer-events-none">
                 <div className="bg-gray-800 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
                   {NAMA_BULAN[i]} — {DATA_CUACA[i].curahHujan}mm
+                  {petaBulan[i + 1].length > 0 && (
+                    <div className="text-emerald-300 font-semibold">{petaBulan[i + 1][0].namaTanaman}</div>
+                  )}
                   <div className={`text-[10px] ${DATA_CUACA[i].isNormal ? 'text-emerald-300' : 'text-amber-300'}`}>
-                    {DATA_CUACA[i].isNormal ? 'Cuaca Normal' : 'Cuaca Tidak Normal'}
+                    {DATA_CUACA[i].isNormal ? '☀ Cuaca Normal' : '🌧 Cuaca Tidak Normal'}
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        {/* Legend for calendar bar */}
+        {/* Legenda */}
         <div className="flex flex-wrap gap-3 mt-3">
           {jadwal.filter(j => j.tanamanId !== 0).map(j => {
             const tanaman = DAFTAR_TANAMAN.find(t => t.id === j.tanamanId);
@@ -107,75 +176,155 @@ const JadwalTanam: React.FC<JadwalTanamProps> = ({ data }) => {
               </div>
             );
           })}
-          {jadwal.some(j => j.tanamanId === 0) && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm bg-gray-300"></span>
-              <span className="text-xs text-gray-600 font-medium">Istirahat</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm bg-gray-200 border border-gray-300"></span>
+            <span className="text-xs text-gray-400 font-medium">Tidak ditanami</span>
+          </div>
+        </div>
+      </div>
+
+      {/* === TABEL GRID 12 BULAN === */}
+      <div className="mb-6">
+        <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-agri-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 6h18M3 14h18M3 18h18"></path>
+          </svg>
+          Tabel Jadwal Bulan per Bulan
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {NAMA_BULAN.map((_, i) => {
+            const bIdx = i + 1;
+            const infoList = petaBulan[bIdx];
+            const isEmpty = infoList.length === 0;
+            const cuaca = DATA_CUACA[i];
+            const tanamanInfo = isEmpty ? null : infoList[0];
+            const tanaman = tanamanInfo ? DAFTAR_TANAMAN.find(t => t.id === tanamanInfo.tanamanId) : null;
+
+            return (
+              <div
+                key={i}
+                className={`rounded-xl border p-3 flex flex-col gap-1.5 transition-shadow hover:shadow-md ${
+                  isEmpty
+                    ? 'border-dashed border-gray-200 bg-gray-50/60'
+                    : 'border-gray-100 bg-white shadow-sm'
+                }`}
+              >
+                {/* Header bulan */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold ${isEmpty ? 'text-gray-400' : 'text-gray-700'}`}>
+                    {cuaca.bulan}
+                  </span>
+                  <IkonCuaca normal={cuaca.isNormal} />
+                </div>
+
+                {/* Bar warna */}
+                <div
+                  className="h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: isEmpty ? '#e5e7eb' : (tanaman?.warna || '#94a3b8'),
+                    opacity: isEmpty ? 1 : 0.75,
+                  }}
+                ></div>
+
+                {/* Nama tanaman */}
+                {isEmpty ? (
+                  <p className="text-[10px] text-gray-400 mt-0.5">Tidak ditanami</p>
+                ) : (
+                  <>
+                    <p className="text-[11px] font-semibold text-gray-800 leading-tight">{tanamanInfo!.namaTanaman}</p>
+                    <p className="text-[10px] text-gray-500">{tanaman?.famili ?? ''}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                        cuaca.isNormal ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {cuaca.isNormal ? 'Normal' : 'Hujan'}
+                      </span>
+                      {tanamanInfo!.bulanMulai === bIdx && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          Mulai
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Timeline Detail */}
-      <div className="relative border-l-2 border-gray-200 ml-4 sm:ml-6 md:ml-8 py-2">
-        {jadwal.map((item, index) => (
-          <div key={item.id} className="mb-8 ml-8 sm:ml-10 relative last:mb-0">
-            
-            {/* Timeline dot */}
-            <span className={`absolute -left-[43px] sm:-left-[51px] flex items-center justify-center w-8 h-8 rounded-full ring-4 ring-white ${item.warnaIkon} text-white shadow-sm text-xs font-bold`}>
-              {index + 1}
-            </span>
+      <div>
+        <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-agri-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+          Detail Periode Tanam
+        </h3>
+        <div className="relative border-l-2 border-gray-200 ml-4 sm:ml-6 py-2">
+          {jadwal.map((item, index) => (
+            <div key={item.id} className="mb-6 ml-8 sm:ml-10 relative last:mb-0">
 
-            {/* Card */}
-            <div className={`p-5 rounded-xl border border-gray-100 ${item.warnaBg} shadow-sm hover:shadow-md transition-shadow`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-                <div className="flex items-center gap-3">
-                  {item.tanamanId !== 0 && (
-                    <span 
-                      className="w-4 h-4 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: DAFTAR_TANAMAN.find(t => t.id === item.tanamanId)?.warna || '#94a3b8' }}
-                    ></span>
-                  )}
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {item.tanaman}
-                  </h3>
+              {/* Timeline dot */}
+              <span className={`absolute -left-[43px] sm:-left-[51px] flex items-center justify-center w-8 h-8 rounded-full ring-4 ring-white ${item.warnaIkon} text-white shadow-sm text-xs font-bold`}>
+                {index + 1}
+              </span>
+
+              {/* Card */}
+              <div className={`p-5 rounded-xl border border-gray-100 ${item.warnaBg} shadow-sm hover:shadow-md transition-shadow`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                  <div className="flex items-center gap-3">
+                    {item.tanamanId !== 0 && (
+                      <span
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: DAFTAR_TANAMAN.find(t => t.id === item.tanamanId)?.warna || '#94a3b8' }}
+                      ></span>
+                    )}
+                    <h3 className="text-lg font-bold text-gray-800">{item.tanaman}</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold px-3 py-1 bg-white text-gray-600 rounded-full border border-gray-200 shadow-sm">
+                      {NAMA_BULAN[item.bulanMulai - 1]} — {NAMA_BULAN[item.bulanSelesai - 1]}
+                    </span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      DATA_CUACA[item.bulanMulai - 1]?.isNormal
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {DATA_CUACA[item.bulanMulai - 1]?.isNormal ? '☀' : '🌧'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold px-3 py-1 bg-white text-gray-600 rounded-full border border-gray-200 shadow-sm">
-                    {NAMA_BULAN[item.bulanMulai - 1]} — {NAMA_BULAN[item.bulanSelesai - 1]}
-                  </span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                    item.cuacaNormal 
-                      ? 'bg-emerald-100 text-emerald-700' 
-                      : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {item.cuacaNormal ? '☀' : '🌧'}
-                  </span>
-                </div>
+
+                <p className="text-sm font-semibold text-gray-700 mb-1">{item.fase}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{item.keterangan}</p>
+
+                {item.tanamanId !== 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-100/50 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                    <span>
+                      Famili:{' '}
+                      <span className="font-semibold text-gray-700">
+                        {DAFTAR_TANAMAN.find(t => t.id === item.tanamanId)?.famili || '-'}
+                      </span>
+                    </span>
+                    <span>
+                      Durasi:{' '}
+                      <span className="font-semibold text-gray-700">
+                        {item.bulanSelesai - item.bulanMulai + 1} bulan
+                      </span>
+                    </span>
+                    <span>
+                      Cuaca mulai tanam:{' '}
+                      <span className={`font-semibold ${DATA_CUACA[item.bulanMulai - 1]?.isNormal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                        {DATA_CUACA[item.bulanMulai - 1]?.isNormal ? 'Normal' : 'Tidak Normal (Hujan)'}
+                      </span>
+                    </span>
+                  </div>
+                )}
               </div>
-              
-              <p className="text-sm font-semibold text-gray-700 mb-1">{item.fase}</p>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {item.keterangan}
-              </p>
-              
-              {item.tanamanId !== 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-100/50 flex items-center gap-4 text-xs text-gray-500">
-                  <span>
-                    Famili: <span className="font-semibold text-gray-700">
-                      {DAFTAR_TANAMAN.find(t => t.id === item.tanamanId)?.famili || '-'}
-                    </span>
-                  </span>
-                  <span>
-                    Durasi: <span className="font-semibold text-gray-700">
-                      {item.bulanSelesai - item.bulanMulai + 1} bulan
-                    </span>
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Kendala Rotasi Info */}
@@ -187,12 +336,14 @@ const JadwalTanam: React.FC<JadwalTanamProps> = ({ data }) => {
           Kendala Rotasi Famili
         </h4>
         <p className="text-xs text-blue-700 leading-relaxed">
-          Tanaman dari famili yang sama tidak boleh ditanam berurutan pada lahan yang sama. 
-          Contoh: <span className="font-semibold">Tomat → Cabai → Kentang</span> (semua Solanaceae) <span className="text-red-500 font-bold">✗ tidak disarankan</span>. 
-          Sebaliknya: <span className="font-semibold">Tomat → Jagung → Wortel</span> (famili berbeda) <span className="text-emerald-600 font-bold">✓ disarankan</span>.
+          Tanaman dari famili yang sama tidak boleh ditanam berurutan pada lahan yang sama.{' '}
+          Contoh: <span className="font-semibold">Tomat → Cabai → Kentang</span> (semua Solanaceae){' '}
+          <span className="text-red-500 font-bold">✗ tidak disarankan</span>.{' '}
+          Sebaliknya: <span className="font-semibold">Tomat → Jagung → Wortel</span> (famili berbeda){' '}
+          <span className="text-emerald-600 font-bold">✓ disarankan</span>.
         </p>
       </div>
-      
+
     </div>
   );
 };

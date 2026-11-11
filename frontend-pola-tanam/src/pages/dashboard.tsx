@@ -4,17 +4,20 @@ import FormSimulasi from '../components/FormSimulasi';
 import GrafikHasil from '../components/GrafikHasil';
 import JadwalTanam from '../components/JadwalTanam';
 import GrafikCuaca from '../components/GrafikCuaca';
+import PerbandinganModel from '../components/PerbandinganModel';
 
 import type { ParameterSimulasi, HasilOptimisasi } from '../types/simulasi';
 import { INFO_DESA } from '../data/researchData'; // DAFTAR_TANAMAN dihapus dari sini karena sudah pindah ke Katalog.tsx
-import { jalankanOptimisasi } from '../utils/milpSolver';
+import { jalankanKeduaModel } from '../utils/milpSolver';
 
 const Dashboard: React.FC = () => {
 
-
-  const [hasilOptimisasi, setHasilOptimisasi] = useState<HasilOptimisasi | null>(null);
+  const [hasilModel1, setHasilModel1] = useState<HasilOptimisasi | null>(null);
+  const [hasilModel2, setHasilModel2] = useState<HasilOptimisasi | null>(null);
+  const [modelDetail, setModelDetail] = useState<1 | 2>(1);
+  const hasilOptimisasi = modelDetail === 1 ? hasilModel1 : hasilModel2;
   const [overview, setOverview] = useState({
-    luasLahan: INFO_DESA.ketinggian,
+    luasLahan: 750,
     tanamanDitanam: 0,
     polaTanam: 'Belum disimulasikan',
     status: 'idle' as 'idle' | 'done'
@@ -22,15 +25,17 @@ const Dashboard: React.FC = () => {
 
 
   const handleJalankanSimulasi = async (params: ParameterSimulasi) => {
-    const hasil = jalankanOptimisasi(params);
-    setHasilOptimisasi(hasil);
+    const { model1, model2 } = await jalankanKeduaModel(params);
+    setHasilModel1(model1);
+    setHasilModel2(model2);
+    const hasil = model1;
 
     const tanamanAktif = hasil.hasilPerTanaman.filter(h => h.ditanam).length;
     
     setOverview({
       luasLahan: params.luasLahan,
       tanamanDitanam: tanamanAktif,
-      polaTanam: hasil.polaTanam,
+      polaTanam: 'Model 1 & Model 2',
       status: 'done'
     });
 
@@ -69,7 +74,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-bold text-gray-800">Dashboard Penelitian</h2>
               <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full font-bold border border-emerald-200">
-                Desa Saribudolok[cite: 1]
+                Desa Saribudolok
               </span>
             </div>
           </div>
@@ -130,7 +135,7 @@ const Dashboard: React.FC = () => {
            <GrafikCuaca />
         </div>
 
-        {/* ================= BAGIAN 3 & 4: FORM INPUT & GRAFIK OPTIMISASI ================= */}
+        {/* ================= BAGIAN 3: FORM INPUT & GRAFIK OPTIMISASI ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-1">
             <FormSimulasi onSimulasi={handleJalankanSimulasi} />
@@ -140,7 +145,27 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* ================= BAGIAN 5: JADWAL TANAM ================= */}
+        {/* ================= BAGIAN 4: PERBANDINGAN DUA MODEL ================= */}
+        <PerbandinganModel model1={hasilModel1} model2={hasilModel2} />
+
+        {/* ================= BAGIAN 5: JADWAL TANAM (pilih model) ================= */}
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm font-semibold text-gray-600">Detail jadwal:</span>
+          {([1, 2] as const).map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setModelDetail(m)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${
+                modelDetail === m
+                  ? 'bg-agri-green text-white border-agri-green'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              Model {m}
+            </button>
+          ))}
+        </div>
         <JadwalTanam data={hasilOptimisasi} />
 
       </main>

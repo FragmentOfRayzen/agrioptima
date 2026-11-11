@@ -196,7 +196,7 @@ const LandingPage: React.FC = () => {
                 7 Famili untuk Kendala Rotasi
               </div>
               <div className="bg-green-600/80 backdrop-blur-md border border-green-400/50 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:-translate-x-3 transition-transform duration-300">
-                3 Pola: Tunggal / Tumpang Sari / Rotasi
+                2 Model: Tunggal / Tumpang Sari + Rotasi
               </div>
               <div className="bg-amber-500/80 backdrop-blur-md border border-amber-300/50 text-amber-900 font-bold py-3 px-8 rounded-full shadow-lg transform hover:-translate-x-3 transition-transform duration-300">
                 Faktor Cuaca: β &amp; γ
@@ -219,21 +219,21 @@ const LandingPage: React.FC = () => {
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
               </div>
               <h3 className="text-xl font-bold text-agri-green mb-3">Kendala Cuaca Ekstrem</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Curah hujan ≥ 200mm/bulan (Agustus–Desember) menurunkan produksi sebesar β% dan menaikkan biaya γ%.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Tanaman peka hujan yang masa tanamnya melewati bulan Agustus–Desember (curah hujan ≥ 200 mm) mengalami penurunan produksi sebesar β% dan kenaikan biaya γ%. Sawi Putih dan Kopi tahan hujan.</p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6 text-agri-green">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
               </div>
               <h3 className="text-xl font-bold text-agri-green mb-3">Keterbatasan Luas Lahan</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Total lahan yang sedang digunakan per bulan tidak boleh melebihi kapasitas A, diatur oleh fungsi δ<sub>ijb</sub>.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Total luas tanam seluruh tanaman terpilih tidak boleh melebihi batas luas lahan L (asumsi penelitian 750 ha).</p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-14 h-14 bg-yellow-100 rounded-lg flex items-center justify-center mb-6 text-yellow-600">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
               <h3 className="text-xl font-bold text-agri-green mb-3">Tanam Tunggal per Tahun</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Setiap jenis tanaman hanya boleh ditanam satu kali per tahun: Σy<sub>ij</sub> ≤ 1, mendorong variasi tanaman optimal.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Setiap jenis tanaman hanya boleh ditanam satu kali per tahun (Σx<sub>ij</sub> ≤ 1). Model 1: satu tanaman mulai per bulan; Model 2: pasangan tumpang sari tertentu boleh mulai bersamaan.</p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center mb-6 text-purple-600">

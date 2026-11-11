@@ -8,12 +8,14 @@ export interface Tanaman {
   nama: string;          // Nama tanaman
   famili: string;        // Famili botani (untuk kendala rotasi)
   familiId: number;      // ID famili numerik
-  durasiTanam: number;   // d_i: durasi tanam dalam bulan
-  produksiMax: number;   // h_i: produksi max per hektar (kg/ha), 0 = belum ada data
-  biayaProduksi: number; // c_i: biaya produksi per hektar (Rp/ha), 0 = belum ada data
-  hargaJual: number;     // s_i: harga jual per kg (Rp/kg), 0 = belum ada data
-  luasTanam: number;     // l_i: luas tanam rata-rata (ha), 0 = belum ada data
+  durasiTanam: number;   // d_i: durasi tanam dalam bulan (tanaman tahunan = 12)
+  produksiMax: number;   // h_i: produktivitas normal (kg/ha)
+  biayaProduksi: number; // c_i: biaya produksi normal (Rp/ha)
+  hargaJual: number;     // s_i: harga jual per kg (Rp/kg)
+  luasTanam: number;     // l_i: luas tanam hasil observasi (ha)
   warna: string;         // Warna untuk visualisasi chart
+  tahanHujan?: boolean;  // true jika tahan curah hujan > 200 mm (tanpa penalti β dan γ)
+  tahunan?: boolean;     // true untuk tanaman tahunan (kopi, jeruk)
 }
 
 /** Data cuaca bulanan Saribudolok */
@@ -27,10 +29,10 @@ export interface DataCuacaBulanan {
 
 /** Parameter input simulasi model MILP */
 export interface ParameterSimulasi {
-  luasLahan: number;       // A: Total luas lahan tersedia (ha)
+  luasLahan: number;       // L: batas total luas tanam (ha)
   beta: number;            // β: Persentase penurunan produksi akibat cuaca tidak normal (%)
   gamma: number;           // γ: Persentase kenaikan biaya akibat cuaca tidak normal (%)
-  polaTanam: 'tunggal' | 'tumpangSari' | 'rotasi'; // Jenis pola tanam
+  polaTanam: 'tunggalRotasi' | 'tumpangSariRotasi'; // Model 1: tunggal + rotasi, Model 2: tumpang sari + rotasi
 }
 
 /** Hasil optimisasi per tanaman */
@@ -44,6 +46,9 @@ export interface HasilPerTanaman {
   biayaProduksiTotal: number;// BP_ij (Rp)
   pendapatanNetto: number;   // PB_ij - BP_ij (Rp)
   cuacaNormal: boolean;      // Apakah bulan tanam cuaca normal
+  luasTanam?: number;        // l_i (ha)
+  bulanPanen?: number;       // bulan terakhir masa tanam (1-12)
+  pasangan?: string[];       // tanaman yang mulai di bulan yang sama (tumpang sari)
 }
 
 /** Hasil simulasi keseluruhan (output solver) */
@@ -51,6 +56,7 @@ export interface HasilOptimisasi {
   totalPendapatanNetto: number;   // Total PN = max Z
   totalPendapatanBruto: number;
   totalBiayaProduksi: number;
+  totalLuasTanam?: number;        // total luas tanam terpilih (ha)
   hasilPerTanaman: HasilPerTanaman[];
   jadwalTanam: JadwalTanamItem[];
   polaTanam: string;

@@ -54,6 +54,7 @@ const Navbar: React.FC = () => {
   // Daftar Menu Internal
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Sensitivitas', path: '/sensitivitas' },
     { name: 'Riwayat Simulasi', path: '/riwayat' },
     { name: 'Katalog Komoditas', path: '/katalog' },
     { name: 'Panduan Sistem', path: '/panduan' },
